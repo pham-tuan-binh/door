@@ -13,16 +13,19 @@ A Raspberry Pi-based smart door opener that uses computer vision to recognize ha
 ## Hardware Requirements
 
 ### Raspberry Pi Setup
+
 - Raspberry Pi 4 (recommended) or Pi 3B+
 - USB webcam
 - MicroSD card (32GB+ recommended)
 - Power supply (5V 3A)
 
 ### LED Ring (NeoPixel)
+
 - WS2812B LED ring (20 LEDs recommended)
 - Connected to GPIO 18 (configurable)
 
 **Wiring:**
+
 ```
 LED Ring -> Raspberry Pi
 VCC      -> 5V (Pin 2)
@@ -31,12 +34,14 @@ DIN      -> GPIO 18 (Pin 12)
 ```
 
 ### ESP32-C6 Motor Controller
+
 - Seeed XIAO ESP32-C6 development board
 - DRV8825 stepper motor driver
 - Stepper motor (NEMA 17 recommended)
 - 12V power supply for motor driver
 
 **ESP32-C6 Wiring:**
+
 ```
 ESP32-C6 -> DRV8825 Driver
 D10      -> STEP
@@ -53,6 +58,7 @@ B1/B2    -> Motor coil B
 ```
 
 **Serial Connection:**
+
 ```
 Raspberry Pi -> ESP32-C6
 GND         -> GND
@@ -61,12 +67,26 @@ GPIO 15 (RX) -> TX (D6)
 ```
 
 **Alternative USB Connection:**
+
 - Connect ESP32-C6 via USB-C cable
 - Default port: `/dev/ttyACM0`
+
+## 3D Printed Parts
+
+The `3D/` folder contains STL files for 3D printable components:
+
+- **Board Holder.3mf**: Mounting case for the ESP32 and DRV8825
+- **Camera Cover - Plate.3mf** & **Camera Cover - Top.3mf**: Protective housing for the camera
+- **Door Gear.3mf**: Door mechanism gear component
+- **Holder - Motor Holder.3mf**: Mounting bracket for the stepper motor
+- **Motor Gear.3mf**: Motor-side gear for the door mechanism
+
+Print these components before assembly to ensure proper mounting and protection of your hardware.
 
 ## Software Installation
 
 ### 1. System Setup (Raspberry Pi)
+
 ```bash
 # Update Raspberry Pi OS
 sudo apt update && sudo apt upgrade -y
@@ -76,6 +96,7 @@ sudo apt install git
 ```
 
 ### 2. Install uv (Python Package Manager)
+
 ```bash
 # Install uv
 curl -LsSf https://astral.sh/uv/install.sh | sh
@@ -85,6 +106,7 @@ source ~/.bashrc
 ```
 
 ### 3. Project Installation
+
 ```bash
 # Clone repository
 git clone <repository-url>
@@ -97,6 +119,7 @@ uv sync
 ### 4. ESP32-C6 Firmware Setup
 
 #### Install PlatformIO
+
 ```bash
 # Install PlatformIO Core
 curl -fsSL -o get-platformio.py https://raw.githubusercontent.com/platformio/platformio-core-installer/master/get-platformio.py
@@ -107,6 +130,7 @@ export PATH=$PATH:~/.platformio/penv/bin
 ```
 
 #### Build and Upload Firmware
+
 ```bash
 # Navigate to firmware directory
 cd Firmware
@@ -122,6 +146,7 @@ pio device monitor --port /dev/ttyACM0 --baud 9600
 ```
 
 ### 5. Enable GPIO/Serial (Raspberry Pi)
+
 ```bash
 # Add user to gpio group
 sudo usermod -a -G gpio $USER
@@ -136,25 +161,33 @@ sudo raspi-config
 ## Configuration
 
 ### Door Sequence
+
 Edit `main.py` to change the unlock sequence:
+
 ```python
 self.DOOR_SEQUENCE = [0, 1, 0, 5]  # Change to your desired sequence
 ```
 
 ### Serial Port
+
 Modify the port in `DoorLib/motor_control.py`:
+
 ```python
 def turn_on(port='/dev/ttyACM0', baudrate=9600):  # Change port as needed
 ```
 
 ### LED Settings
+
 Adjust LED configuration in `DoorLib/led_control.py`:
+
 ```python
 def __init__(self, pixel_pin=board.D18, num_pixels=20, brightness=1.0):
 ```
 
 ### Motor Settings
+
 Adjust stepper motor parameters in `Firmware/src/main.cpp`:
+
 ```cpp
 #define STEP 50              // Steps to move (adjustable)
 #define WAITING_TIME 5000    // Hold time in milliseconds
@@ -163,12 +196,14 @@ Adjust stepper motor parameters in `Firmware/src/main.cpp`:
 ## Usage
 
 ### Running the System
+
 ```bash
 # Activate virtual environment
 uv run python main.py
 ```
 
 ### Operation
+
 1. **Idle State**: Blue chasing light animation on LED ring
 2. **Hand Detection**: LEDs show current finger count with colored regions
 3. **Sequence Entry**: Enter the finger count sequence (default: fist → 1 finger → fist → 5 fingers)
@@ -176,20 +211,24 @@ uv run python main.py
 5. **Failure**: LEDs return to idle, sequence resets
 
 ### Motor Commands
+
 The ESP32-C6 accepts these serial commands:
+
 - `#on`: Move stepper motor forward, hold for 5 seconds, then disable
 - `#off`: Rewind stepper motor to original position and disable
 
 ### LED Indicators
+
 - **Blue chase**: Idle/waiting for input
 - **Colored regions**: Current finger count display
-- **Cyan segments**: Sequence progress indication  
+- **Cyan segments**: Sequence progress indication
 - **Green flash**: Successful unlock
 - **Return to idle**: Wrong sequence (no error indication)
 
 ## Development
 
 ### Python Environment
+
 ```bash
 # Add new dependencies
 uv add package-name
@@ -200,6 +239,7 @@ uv run pytest  # if tests exist
 ```
 
 ### ESP32-C6 Development
+
 ```bash
 # Build without upload
 pio run -e seeed_xiao_esp32c6
@@ -222,6 +262,7 @@ pio lib update
 ## Troubleshooting
 
 ### Camera Issues
+
 ```bash
 # List USB cameras
 lsusb | grep -i camera
@@ -231,6 +272,7 @@ python3 -c "import cv2; cap = cv2.VideoCapture(0); print('Camera available:', ca
 ```
 
 ### Serial Communication
+
 ```bash
 # List available serial ports
 ls /dev/tty*
@@ -240,6 +282,7 @@ minicom -D /dev/ttyACM0 -b 9600
 ```
 
 ### LED Issues
+
 ```bash
 # Check GPIO permissions
 sudo chown root:gpio /dev/gpiomem
@@ -247,6 +290,7 @@ sudo chmod g+rw /dev/gpiomem
 ```
 
 ### ESP32-C6 Issues
+
 ```bash
 # Check if device is detected
 lsusb | grep -i esp
@@ -256,6 +300,7 @@ sudo chmod 666 /dev/ttyACM0
 ```
 
 ### Python Dependencies
+
 ```bash
 # Reinstall dependencies
 uv sync --reinstall
