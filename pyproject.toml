@@ -1,0 +1,13 @@
+[project]
+name = "door"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "adafruit-circuitpython-neopixel>=6.3.17",
+    "mediapipe==0.10.18",
+    "opencv-python>=4.11.0.86",
+    "pyserial>=3.5",
+    "rpi-ws281x>=5.0.0",
+]
